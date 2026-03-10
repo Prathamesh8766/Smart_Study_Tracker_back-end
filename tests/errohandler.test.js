@@ -2,7 +2,8 @@ import request from "supertest";
 import app from '../src/app.js'
 
 let token;
-
+const email = process.env.TEST_USER_EMAIL;
+const password = process.env.TEST_USER_PASSWORD;
 describe("ErrorHandler", () => {
 
     beforeAll(async () => {
@@ -18,7 +19,7 @@ describe("ErrorHandler", () => {
 
     test('should detect CastError', async () => {
         let sessionId = "65dahkf47292bfaifnr"
-        const response = await request(app)
+        const res = await request(app)
             .post('/api/studySession/delete-study-session/${sessionId}')
             .set("Authorization", `Bearer ${token}`);
 
@@ -36,7 +37,7 @@ describe("ErrorHandler", () => {
                 "password": "123456"
             });
 
-        expect(res.statusCode(400));
+        expect(res.statusCode).toBe(400);
         expect(res.body.success).toBe(false);
         expect(res.body.error).toBe("email already exists");
         expect(res.body.statusCode).toBe(400);
@@ -59,7 +60,7 @@ describe("ErrorHandler", () => {
     test("Should detect jsonwebTokenError" ,async () => {
         token = "jksdkjnsslkdlkd;kwekju298198u3983kjdkja"
         const res = await request(app)
-        post("/api/subject/create-subject")
+        .post("/api/subject/create-subject")
       .set("Authorization", `Bearer ${token}`)
       .send({
         title: "Math"
