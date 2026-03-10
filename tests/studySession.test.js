@@ -1,86 +1,83 @@
-import request from "supertest";
-import app from "../src/app.js";
+import { jest } from "@jest/globals";
+import Subject from "../src/models/Subject.js";
+import StudySession from "../src/models/StudySession.js";
+import {
+  addSubjectSession,
+  deleteStudySessionController,
+  getSessionsBySubjectController,
+} from "../src/controllers/subjectSessionController.js";
 
-let token;
-let subjectId;
-let sessionId;
+describe("study session controllers", () => {
 
-const email = process.env.TEST_USER_EMAIL;
-const password = process.env.TEST_USER_PASSWORD;
+  const createRes = () => {
+    const res = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    return res;
+  };
 
-describe("Study Session API", () => {
+  afterEach(() => jest.restoreAllMocks());
 
-  /* LOGIN USER */
-  beforeAll(async () => {
-    const res = await request(app)
-      .post("/api/auth/login")
-      .send({
-        email: email,
-        password: password
-      });
+  test("addSubjectSession validates and creates", async () => {
 
-    expect(res.statusCode).toBe(200);
-    token = res.body.token;
+    const res = createRes();
+    await addSubjectSession({ body: {}, user: { _id: "u1" } }, res, jest.fn());
+    expect(res.status).toHaveBeenCalledWith(400);
+
+    jest.spyOn(Subject, "findOne").mockResolvedValue(null);
+    const res2 = createRes();
+    await addSubjectSession(
+      { body: { subjectId: "s1", duration: 60 }, user: { _id: "u1" } },
+      res2,
+      jest.fn()
+    );
+
+    expect(res2.status).toHaveBeenCalledWith(404);
+
+    Subject.findOne.mockResolvedValue({ _id: "s1" });
+    jest.spyOn(StudySession, "create").mockResolvedValue({ _id: "ss1" });
+    const res3 = createRes();
+    await addSubjectSession(
+      { body: { subjectId: "s1", duration: 60, notes: "ok" }, user: { _id: "u1" } },
+      res3,
+      jest.fn()
+    );
+    
+    expect(res3.status).toHaveBeenCalledWith(201);
+
   });
 
-  /* CREATE SUBJECT */
-  test("should create subject", async () => {
-    const res = await request(app)
-      .post("/api/subject/create-subject")
-      .set("Authorization", `Bearer ${token}`)
-      .send({
-        title: "Math"
-      });
 
-    expect(res.statusCode).toBe(201);
-    expect(res.body.success).toBe(true);
+  test("get sessions by subject", async () => {
 
-    subjectId = res.body.data._id;
-    expect(subjectId).toBeDefined();
+    jest.spyOn(Subject, "findOne").mockResolvedValue(null);
+    const res = createRes();
+    await getSessionsBySubjectController({ params: { subjectId: "s1" }, user: { _id: "u1" } }, res, jest.fn());
+    expect(res.status).toHaveBeenCalledWith(404);
+
+    Subject.findOne.mockResolvedValue({ _id: "s1" });
+    jest.spyOn(StudySession, "find").mockReturnValue({ sort: jest.fn().mockResolvedValue([{ _id: "ss1" }]) });
+    const res2 = createRes();
+    await getSessionsBySubjectController({ params: { subjectId: "s1" }, user: { _id: "u1" } }, res2, jest.fn());
+    expect(res2.status).toHaveBeenCalledWith(200);
+
   });
 
-  /* CREATE STUDY SESSION */
-  test("should create study session", async () => {
-    const res = await request(app)
-      .post("/api/studySession/add-subject-session")
-      .set("Authorization", `Bearer ${token}`)
-      .send({
-        subjectId: subjectId,    // ✅ FIXED HERE
-        duration: 2,
-        date: "2026-03-08",
-        notes: "Test math session"
-      });
 
-    expect(res.statusCode).toBe(201);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data).toBeDefined();
+  test("delete study session", async () => {
 
-    sessionId = res.body.data._id;
+    jest.spyOn(StudySession, "findOne").mockResolvedValue(null);
+    const res = createRes();
+    await deleteStudySessionController({ params: { sessionId: "ss1" }, user: { _id: "u1" } }, res, jest.fn());
+    expect(res.status).toHaveBeenCalledWith(404);
 
-    expect(res.body.data.subjectId).toBe(subjectId);
-    expect(res.body.data.duration).toBe(2);
-  });
+    StudySession.findOne.mockResolvedValue({ _id: "ss1" });
+    jest.spyOn(StudySession, "deleteOne").mockResolvedValue({});
+    const res2 = createRes();
+    await deleteStudySessionController({ params: { sessionId: "ss1" }, user: { _id: "u1" } }, res2, jest.fn());
+    expect(res2.status).toHaveBeenCalledWith(200);
 
-  /* GET SESSIONS BY SUBJECT */
-  test("should get sessions by subject", async () => {
-    const res = await request(app)
-      .get(`/api/studySession/get-session-by-subject/${subjectId}`)
-      .set("Authorization", `Bearer ${token}`);
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(Array.isArray(res.body.data)).toBe(true);
-  });
-
-  /* DELETE SESSION */
-  test("should delete study session", async () => {
-    const res = await request(app)
-      .delete(`/api/studySession/delete-study-session/${sessionId}`)
-      .set("Authorization", `Bearer ${token}`);
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.message).toBe("Session deleted successfully");
   });
 
 });
