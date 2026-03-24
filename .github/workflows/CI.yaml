@@ -9,16 +9,16 @@ on:
 
 jobs:
   ci-pipeline:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest             #This defines the machine where CI runs.
 
-    env:
+    env:                                        # explain me this 
       MONGODB_URL: ${{ secrets.MONGODB_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       JWT_EXPIRE: ${{ secrets.JWT_EXPIRE }}
       PORT: ${{ secrets.PORT }}
       NODE_ENV: test
 
-    steps:
+    steps:                                     
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -32,33 +32,202 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        env:     
+        env:                                 
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           TEST_USER_USERNAME: ${{ secrets.TEST_USER_USERNAME }}
         run: npm test
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage to Codecov  # explain
         uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage/coverage-final.json
+        with:        
+          files: ./coverage/coverage-final.json          # explain me file ,name and flages 
           flags: unittests
-          name: codecov-umbrella
+          name: codecov-umbrella                          
 
       - name: Display Coverage Report
         run: |
           echo "=== Code Coverage Report ==="
           cat coverage/coverage-summary.json
 
-      - name: Prepare Artifacts
-        run: |
-          mkdir build
-          cp -r src package.json package-lock.json build/
+      - name: Prepare Artifacts                  # explain me this . where the artifact will be created
+        run: |                                   # explain cp command 
+          mkdir build                           
+          cp -r src package.json package-lock.json build/  
           
       - name: Upload Build Artifact
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-production
-          path: build/
+          name: backend-production            # why name here 
+          path: build/                        
           retention-days: 30
+
+#Q> What is ci?
+# Continuous Integration (CI) is a DevOps practice where developers frequently push their 
+# code to a shared repository such as GitHub, and every change is automatically built and tested 
+# to detect errors early.
+
+# Why is Continuous Integration needed?
+# Ans: In a project, multiple developers work on different features independently. 
+# When they finish their work, they push their code to the shared repository.
+
+# Without CI:
+
+# Code may break when merged.
+# Integration conflicts may occur.
+# Bugs are detected late.
+# Manual testing becomes time-consuming.
+# It can cause production issues.
+
+# CI solves this by:
+
+# Automatically building the project after every push.
+# Running automated test cases.
+# Giving immediate feedback if something fails.
+# Ensuring only tested and stable code is merged.
+
+# Q> What happens if build fails?
+# ans: If the build fails in a Continuous Integration pipeline, 
+# it means that the code changes introduced an error during the build or testing process. 
+# The CI system immediately stops the pipeline and notifies the developers so they can fix the issue.
+
+# Q> “What are the different steps in Continuous Integration (CI)
+# Ans: STAGE 1: Code commit
+# This is the first step:
+# Developer write code and push the code to shared repository like github or gitladb.
+# Each commit trigger the CI pipeline automaticaly
+# Thie trigger ussally happen using webhook.
+
+#Purpose:
+# To ensure every new code change enters the CI pipeline.
+
+#STAGE 2: Build stage
+# After the code is pused, the CI tools automaticaly start the build process.
+
+# CI tools:
+# jenkins
+# GitHub Action
+# Git Lab
+# Travis CI
+
+# During Build stage:
+# Dependencies are installed
+# Code is compiled (if required)
+# Application is packaged
+
+# Purpose:
+# To verify that the application can successfully compile or build.
+
+# STAGE 3: Automated Testing Stage
+# Once the build succeeds, CI runs automated tests.
+
+# Types of tests include:
+# Unit Tests
+# Integration Tests
+# API Tests
+
+# Example tools:
+# Jest
+# JUnit
+
+# Purpose:
+# To ensure the new code does not break existing functionality.
+
+# STAGE 4: Code Quality / Static Analysis
+
+# This stage checks code quality and security issues.
+# Tools analyze the code without running it.
+
+# Examples include:
+# Checking coding standards
+# Detecting bugs
+# Finding security vulnerabilities
+
+# Example tools:
+# SonarQube
+# ESLint
+
+# Purpose:
+# To maintain clean, secure, and maintainable code.
+
+#STAGE 5: Artifact Creation
+
+# After successful testing, the system creates a build artifact.
+
+# Artifacts are deployable files like:
+# .jar
+# .war
+# .docker image
+# .zip
+
+# These artifacts are stored in repositories such as:
+
+# Nexus Repository
+# JFrog Artifactory
+
+# Purpose:
+# To generate a stable package ready for deployment.
+
+# Stage 6: Notification / Feedback
+
+# The final step is feedback to developers.
+
+# If pipeline fails:
+# Developers receive notifications.
+
+# Notifications can be sent through:
+# Email
+# Slack
+# CI dashboard
+ 
+# Purpose:
+# To inform developers quickly so they can fix issues.
+
+
+# Q> What are terminologies in CI?
+# Ans: Jobs: It is the set of steps to be executed
+# Steps: One opration or individual task.
+# Workflow: Automated proccess created using one or more jobs.
+# Actions: An action is reusable piece of code used in workflows.
+#          Instead of writing everything manually, you can use ready-made actions.
+
+# Q> What is context variable?
+# ans: Contest are variables that provide the information about the workflow/pipeline, jobs, steps, env, screts and more.
+# They enable you to access metadata and use it to create dynamic workflow that can abjust the behavious based on the context.
+# 
+# Comman github context variables are:
+# 1) github: Provide the information about the repository and event.
+#    example: ${{github.ref}}
+#             ${{github.actor}}
+#
+# 2) env: Using env we can access enviroment variables.
+#    example: ${{env.NODE_ENV}}
+#
+# 3) secrets: Access secure variables.
+#    example: ${{ secrets.JWT_SECRET }}
+# 
+# 4) job: Provide the information about the current job.
+#    example: ${{ job.status }}
+#
+# 5) steps: Access outputs from previous steps.
+#    example: ${{ steps.step1.outputs.value }}
+#
+# 6) need: Used when jobs depend on other jobs.
+#    example:
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - run: echo "Build done"
+
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
+#     steps:
+#       - run: echo "Deploy after ${{ needs.build.result }}"
+#
+# 7) runner: Gives info about the machine running the job.
+#    Example:
+#             - name: Runner Info
+#             run: echo "OS: ${{ runner.os }}"

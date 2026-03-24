@@ -36,7 +36,8 @@ userSchema.pre("save", async function () { // Here pre is a document midleware a
 });
 
 userSchema.methods.matchPassword = async function name(enterPassword) {//.methods is used to add custom functions to the schema.
-    return await bcrypt.compare(enterPassword, this.password) //.compare method used to compare the entered password and the hashed password by taking out the salt from the hash, 
+    return await bcrypt.compare(enterPassword, this.password) //.compare method used to compare the entered password and the 
+                                                                // hashed password by taking out the salt from the hash, 
 };
 
 const User = mongoose.model('User', userSchema);  //Here the "User" is a collection name and userSchema is a schema. After this, 
