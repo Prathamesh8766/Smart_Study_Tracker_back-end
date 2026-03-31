@@ -49,3 +49,95 @@
 #           URL="$STAGING_URL"
 #           if [ "${GITHUB_REF_NAME}" = "main" ]; then URL="$PROD_URL"; fi
 #           curl -f "$URL/health"
+
+
+# What is CD?
+# Ans: CD stand for Continuous Deployment or Continuous Delivery.
+#      1) Continuous Deployment: Full automated the releasr process, deploying every validated changes 
+#         to production without manual intervention
+
+#      2)Continuos Delivery: When you want to automated your change till the staging area and for production
+#        use to manual approval for deployments.
+
+# What are the different steps in CD?
+# Ans: 
+# 1> Release Stage (Artifact Handling):
+#   This stage use the arifact file which is genrated after ci for deployment. 
+#   The final packaged version of your application (ready to deploy)
+
+# 2> Enviroment Provisioning stage:
+#   Preparing infrastructure where app will run”
+#   This includes:
+#       server creation
+#       cloud setup
+#       environment variables
+#       database connection
+#   This stage ensures:
+#     Everything required to run your app is ready
+
+# 3> Deployment Stage
+#    This is the main step.
+#    Here your artifact is:
+#       Actually deployed to the server/platform
+
+# 4> Configuration & Secrets Injection Stage
+#   Before app runs, it needs configuration.
+#   This includes:
+#       database URL
+#       JWT secret
+#       API keys
+#   These are injected as:
+#       environment variables (from GitHub secrets or platform settings)
+
+# 5> Post-Deployment Verification (Smoke Testing)
+#   First recall:
+#       Smoke test = quick check if app is alive
+#   After deployment:
+#       Pipeline sends request to app
+#   This checks:
+#       server is running
+#       API responds
+#   If this fails:
+#       Deployment is considered failed
+
+# 6> Traffic Switching / Release Strategy Stage
+#   This is more advanced but very important.
+#   Instead of directly replacing old version, industry uses strategies:
+#     Blue-Green Deployment
+#         Two environments:
+#               Blue (old)
+#               Green (new)
+#         Switch traffic to new only if safe.
+#     Rolling Deployment
+#         Gradually update servers.
+#     Canary Deployment
+#         Release to small % of users first.
+#     Why this stage exists:
+#         Prevents breaking app for all users at once
+
+# 7️> Monitoring & Logging Stage
+#     After deployment:
+#        System continuously checks health
+#     It monitors:
+#          errors
+#          crashes
+#          response time
+#     Logs help debug issues.
+
+# 8> Rollback Stage (Critical Safety)
+#    If something goes wrong:
+#        System rolls back to previous version
+#    Rollback means:
+#       “Undo deployment and restore last working version”
+#    Why important:
+#        Protect users from broken updates
+
+# 9️> Notification & Feedback Stage
+#     Finally:
+#       System sends updates to developers.
+#     Examples:
+#         Deployment success message
+#         Failure alert
+#         Slack/email notifications
+#     This helps team know:
+#          Whether release was successful

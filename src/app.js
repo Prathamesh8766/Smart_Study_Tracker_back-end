@@ -128,6 +128,17 @@ Handles errors thrown from controllers.
 app.use(errorHandler);
 
 /*
+Export app so it can be used by:
+
+- server.js
+- test files
+*/
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ success: true, message: "API is healthy" });
+});
+
+/*
 404 Route Handler
 
 Runs when no route matches request.
@@ -140,14 +151,5 @@ app.use((req, res) => {
   });
 });
 
-/*
-Export app so it can be used by:
 
-- server.js
-- test files
-*/
-
-app.get("/health", (req, res) => {
-  res.status(200).json({ success: true, message: "API is healthy" });
-});
 export default app;
