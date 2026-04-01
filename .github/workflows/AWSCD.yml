@@ -11,13 +11,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
 
-    env:
-      MONGODB_URL: ${{ secrets.MONGODB_URL }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      JWT_EXPIRE: ${{ secrets.JWT_EXPIRE }}
-      PORT: ${{ secrets.PORT }}
-      NODE_ENV: production
-
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -33,4 +27,4 @@ jobs:
 
       - name: Restart App
         run: |
-          pm2 restart server || pm2 start src/server.js --name server
+          pm2 restart server
