@@ -1,3 +1,5 @@
+import ip from 'ip';
+
 /*
 APP.JS
 
@@ -135,9 +137,13 @@ Export app so it can be used by:
 */
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ success: true, message: "API is healthy and fine project run succes fuly" });
+    const serverIp = ip.address();
+    res.status(200).json({ 
+        success: true, 
+        message: "API is healthy and project is running successfully on",
+        serverIp: serverIp
+    });
 });
-
 /*
 404 Route Handler
 
